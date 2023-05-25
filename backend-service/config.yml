@@ -1,0 +1,4 @@
+DB_HOST: localhost
+DB_NAME: ionos
+DB_USER: postgres
+DB_PASS: Ie9yaAlhhb
