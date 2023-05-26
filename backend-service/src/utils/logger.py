@@ -1,6 +1,6 @@
 import sys
 import logging
-from utils.findParent import get_project_root
+from src.utils.findParent import get_project_root
 
 def init_logging(log_level, filename:str):
     root_dir = get_project_root()
