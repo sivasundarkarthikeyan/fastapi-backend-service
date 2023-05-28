@@ -10,3 +10,5 @@ class Vehicle(BaseModel):
     metadata: str
     year_of_manufacture: int
     ready_to_drive: bool
+
+    

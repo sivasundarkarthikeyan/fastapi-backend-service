@@ -16,6 +16,11 @@ except:
 
 app = FastAPI()
 
+@app.get("/")
+def status_check() -> str:
+    return "IONOS FastAPI Backend service - Homepage"
+
+
 @app.get("/status/")
 def status_check() -> str:
     """endpoint responsible to verify the status of backend and Postgres service
@@ -95,5 +100,5 @@ def update_row(values: dict)-> dict:
     """
     id, params = tuple(values["id"]), values["update_with"]
     updated_rows_count = db_connector.update(id, params)
-    response = {"Total records count":updated_rows_count}
+    response = {"Updated records count":updated_rows_count}
     return response

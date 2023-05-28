@@ -1,0 +1,34 @@
+services:
+  database:
+    image: postgres
+    ports:
+      - "5432:5432"
+    restart: always
+    networks:
+      - ionos-local
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Ie9yaAlhhb
+      POSTGRES_DB: ionos
+
+  python-app:
+    image: ionos-backend
+    restart: always
+    depends_on:
+      database:
+        condition: service_healthy
+    ports:
+      - 8000:8000
+    networks:
+      - ionos-local
+
+networks:
+  ionos-local:
+    driver: bridge
+
+healthcheck:
+  test: ["CMD", "curl", "-f", "http://localhost"]
+  interval: 1m30s
+  timeout: 10s
+  retries: 3
+  start_period: 40s

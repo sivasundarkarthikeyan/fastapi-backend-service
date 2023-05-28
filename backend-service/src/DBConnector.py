@@ -49,7 +49,8 @@ class DBConnector():
         credentials = self.read_config()
         conn = connect(
         host=credentials["DB_HOST"],
-        database=credentials["DB_NAME"],
+        port=credentials["DB_PORT"],
+        dbname=credentials["DB_NAME"],
         user=credentials["DB_USER"],
         password=credentials["DB_PASS"])
         return conn
