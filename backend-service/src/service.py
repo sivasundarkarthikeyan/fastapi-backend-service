@@ -8,16 +8,27 @@ from src.Vehicle import Vehicle
 
 logger = init_logging(logging.INFO, __file__)
 logger.info("Starting IONOS FastAPI Backend Service")
-try:
-    db_connector = DBConnector(logging.DEBUG)
-    logger.info("Established connection to Postgres DB")
-except:
-    raise ConnectionError("Postgres server is unreachable")
+db_connector = None
+
+def db_connect():
+    try:
+        global db_connector
+        db_connector = DBConnector(logging.DEBUG)
+        logger.info("Established connection to Postgres DB")
+    except:
+        raise ConnectionError("Postgres server is unreachable")
+
+db_connect()
 
 app = FastAPI()
 
 @app.get("/")
-def status_check() -> str:
+def homepage() -> str:
+    """Homepage endpoint
+
+    Returns:
+        str: Returns basic information about the service
+    """
     return "IONOS FastAPI Backend service - Homepage"
 
 
@@ -86,7 +97,7 @@ def fetch_total_rows()-> dict:
     response = {"Total records count":total_rows}
     return response
 
-@app.post("/update/")
+@app.put("/update/")
 def update_row(values: dict)-> dict:
     """_summary_
 
@@ -98,7 +109,7 @@ def update_row(values: dict)-> dict:
     Returns:
         int: total number of records updated in the table
     """
-    id, params = tuple(values["id"]), values["update_with"]
-    updated_rows_count = db_connector.update(id, params)
+    filter_with, replace_with = values["filter_with"], values["replace_with"]
+    updated_rows_count = db_connector.update(filter_with, replace_with)
     response = {"Updated records count":updated_rows_count}
     return response

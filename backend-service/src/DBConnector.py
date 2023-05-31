@@ -1,9 +1,9 @@
 import os
 import yaml
 import logging
+from urllib.parse import urlparse
 from typing import Union, Dict, List
 from psycopg2 import connect, sql
-from psycopg2.extras import execute_batch
 from src.utils.logger import init_logging
 
 class DBConnector():
@@ -46,13 +46,32 @@ class DBConnector():
         Returns:
             connection: DB connection based on psycopg2 module
         """
-        credentials = self.read_config()
+        db_url = os.environ['DB_URL']
+        result = urlparse(db_url)
+        username = result.username
+        password = result.password
+        database = result.path[1:]
+        hostname = result.hostname
+        port = result.port
+        print("username", username)
+        print("password", password)
+        print("database", database)
+        print("hostname", hostname)
+        print("port", port)
         conn = connect(
-        host=credentials["DB_HOST"],
-        port=credentials["DB_PORT"],
-        dbname=credentials["DB_NAME"],
-        user=credentials["DB_USER"],
-        password=credentials["DB_PASS"])
+		host=hostname,
+		port = port,
+		dbname=database,
+		user=username,
+		password=password)
+
+        #credentials = self.read_config()
+        # conn = connect(
+        # host=credentials["DB_HOST"],
+        # port=credentials["DB_PORT"],
+        # dbname=credentials["DB_NAME"],
+        # user=credentials["DB_USER"],
+        # password=credentials["DB_PASS"])
         return conn
 
     def fetch_row_count(self) -> int:
@@ -99,7 +118,7 @@ class DBConnector():
         )
         return self.execute(query, params, "insert")
     
-    def update(self, id: list, params:dict) -> int:
+    def update(self, filter_with: dict, replace_with:dict) -> int:
         """updates the records that matches the given id with new data
 
         Args:
@@ -109,8 +128,9 @@ class DBConnector():
         Returns:
             int: total number of records updated
         """
-        update_clause = ", ".join([f"{key}='{val}'" if isinstance(val, str) else f"{key}={val}" for key, val in params.items()])
-        query = f"UPDATE VEHICLE SET {update_clause} WHERE id in {id};"
+        update_clause = ", ".join([f"{key}='{val}'" if isinstance(val, str) else f"{key}={val}" for key, val in replace_with.items()])
+        filter_clause = "AND ".join([f"{key}='{val}'" if isinstance(val, str) else f"{key}={val}" for key, val in filter_with.items()])
+        query = f"UPDATE VEHICLE SET {update_clause} WHERE {filter_clause};"
         return self.execute(query, None, "update")
     
     def execute(self, query:str, params:Union[Dict, None], query_type:str) -> list:

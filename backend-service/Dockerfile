@@ -4,6 +4,10 @@ ARG USER="ionos"
 
 FROM python:3.9
 
+# set env variables
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+
 ARG USER
 
 # make python use the system CA bundle
@@ -22,8 +26,9 @@ COPY src/ home/${USER}/code/src/
 WORKDIR /home/${USER}/code/
 
 #setting path environment
-ENV PATH /home/${USER}/.local/bin:${PATH}
-RUN echo ${PATH}
+#ENV PATH /home/${USER}/.local/bin:${PATH}
+#RUN echo ${PATH}
+
 # install python packages
 RUN pip install pipenv 
 RUN pipenv install --dev --deploy
