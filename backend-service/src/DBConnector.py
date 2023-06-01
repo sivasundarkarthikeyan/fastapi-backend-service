@@ -1,6 +1,7 @@
 import os
 import yaml
 import logging
+from datetime import datetime
 from urllib.parse import urlparse
 from typing import Union, Dict, List
 from psycopg2 import connect, sql
@@ -46,32 +47,18 @@ class DBConnector():
         Returns:
             connection: DB connection based on psycopg2 module
         """
-        db_url = os.environ['DB_URL']
-        result = urlparse(db_url)
-        username = result.username
-        password = result.password
-        database = result.path[1:]
-        hostname = result.hostname
-        port = result.port
-        print("username", username)
-        print("password", password)
-        print("database", database)
-        print("hostname", hostname)
-        print("port", port)
+        username = os.environ['POSTGRES_USER']
+        password = os.environ['POSTGRES_PASS']
+        database = os.environ['POSTGRES_DB']
+        hostname = os.environ['POSTGRES_HOST']
+        port = os.environ['POSTGRES_PORT']
+
         conn = connect(
 		host=hostname,
 		port = port,
 		dbname=database,
 		user=username,
 		password=password)
-
-        #credentials = self.read_config()
-        # conn = connect(
-        # host=credentials["DB_HOST"],
-        # port=credentials["DB_PORT"],
-        # dbname=credentials["DB_NAME"],
-        # user=credentials["DB_USER"],
-        # password=credentials["DB_PASS"])
         return conn
 
     def fetch_row_count(self) -> int:
@@ -110,13 +97,23 @@ class DBConnector():
             int: total number of records inserted
         """
         column_keys = ["brand", "description", "metadata", 
-                       "year_of_manufacture", "ready_to_drive"]
+                       "year_of_manufacture", "ready_to_drive",
+                       "created_on", "updated_on"]
 
         query = sql.SQL("INSERT INTO VEHICLE ({}) values ({})").format(
             sql.SQL(",").join(map(sql.Identifier, column_keys)),
             sql.SQL(",").join(map(sql.Placeholder, column_keys))
         )
-        return self.execute(query, params, "insert")
+        created_on = datetime.now()
+        updated_on = None
+        
+        params_with_date = list()
+        for param in params:
+            param["created_on"] = created_on
+            param["updated_on"] = updated_on
+            params_with_date.append(param)
+        
+        return self.execute(query, params_with_date, "insert")
     
     def update(self, filter_with: dict, replace_with:dict) -> int:
         """updates the records that matches the given id with new data
@@ -128,9 +125,13 @@ class DBConnector():
         Returns:
             int: total number of records updated
         """
+
+        updated_on = str(datetime.now())
+        replace_with['updated_on'] = updated_on
+
         update_clause = ", ".join([f"{key}='{val}'" if isinstance(val, str) else f"{key}={val}" for key, val in replace_with.items()])
         filter_clause = "AND ".join([f"{key}='{val}'" if isinstance(val, str) else f"{key}={val}" for key, val in filter_with.items()])
-        query = f"UPDATE VEHICLE SET {update_clause} WHERE {filter_clause};"
+        query = "UPDATE VEHICLE SET " + update_clause +" WHERE " + filter_clause +";"
         return self.execute(query, None, "update")
     
     def execute(self, query:str, params:Union[Dict, None], query_type:str) -> list:
@@ -145,16 +146,22 @@ class DBConnector():
                   list of records for a select query
         """
         cur = self.conn.cursor()
-        if query_type == 'insert':
-            results = 0
-            cur.executemany(query, params)
-            results = cur.rowcount
-        else:
-            cur.execute(query)
-            
-            if query_type == 'fetch':
-                results = cur.fetchall()
-            else:
+        try:
+            if query_type == 'insert':
+                results = 0
+                cur.executemany(query, params)
                 results = cur.rowcount
-        self.conn.commit()
-        return results
+            else:
+                cur.execute(query)
+                
+                if query_type == 'fetch':
+                    results = cur.fetchall()
+                elif query_type == 'update':
+                    results = cur.rowcount
+                else:
+                    raise ValueError("Invalid query type")
+            self.conn.commit()
+            return results
+        except:
+            self.conn.rollback()
+        

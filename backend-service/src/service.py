@@ -1,6 +1,6 @@
 import logging
 from typing import List, Union
-from fastapi import FastAPI, Response
+from fastapi import FastAPI, Response, Depends
 from src.DBConnector import DBConnector
 from src.utils.logger import init_logging
 
@@ -11,6 +11,11 @@ logger.info("Starting IONOS FastAPI Backend Service")
 db_connector = None
 
 def db_connect():
+    """establishes Python Postgres DB connection 
+
+    Raises:
+        ConnectionError: Raises connection error when the Postgres server is unreachable
+    """
     try:
         global db_connector
         db_connector = DBConnector(logging.DEBUG)
@@ -21,6 +26,13 @@ def db_connect():
 db_connect()
 
 app = FastAPI()
+
+
+def get_session():
+    return True
+
+def is_database_online(session: bool = Depends(get_session)):
+    return session
 
 @app.get("/")
 def homepage() -> str:
@@ -34,7 +46,7 @@ def homepage() -> str:
 
 @app.get("/status/")
 def status_check() -> str:
-    """endpoint responsible to verify the status of backend and Postgres service
+    """endpoint responsible to verify the status of backend
 
     Returns:
         str: Status of the backend and Postgres service

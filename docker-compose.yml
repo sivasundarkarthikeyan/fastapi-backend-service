@@ -5,13 +5,13 @@ services:
     build: 
       context: ./backend-service
     command: pipenv run python -m uvicorn src.service:app --host 0.0.0.0
-    restart: always
+    #restart: always
     ports:
       - 8000:8000
     depends_on: 
       - database
-    environment:
-      - DB_URL=postgresql://postgres:Ie9yaAlhhb@database:5432/ionos
+    env_file:
+      - postgres.env
 
   database:
     build: 
@@ -22,10 +22,8 @@ services:
     ports:
       - 5432:5432
     restart: always
-    environment:
-      POSTRES_USER: postgres
-      POSTGRES_PASSWORD: Ie9yaAlhhb
-      POSTGRES_DB: ionos
+    env_file:
+      - postgres.env
 
 volumes:
   postgres_data:
