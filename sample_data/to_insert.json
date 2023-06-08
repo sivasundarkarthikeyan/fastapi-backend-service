@@ -1,0 +1,23 @@
+[
+  {
+    "brand": "BMV",
+    "description": "380",
+    "metadata": "{\"speed\":\"300 kmph\", \"seating\":3 , \"airbags\":true}",
+    "year_of_manufacture": 2022,
+    "ready_to_drive": true
+  },
+  {
+    "brand": "Audi",
+    "description": "A3",
+    "metadata": "{\"speed\":\"250 kmph\", \"seating\":5 , \"airbags\":true}",
+    "year_of_manufacture": 2021,
+    "ready_to_drive": true
+  },
+  {
+    "brand": "Maruti",
+    "description": "Omni",
+    "metadata": "{\"speed\":\"80 kmph\", \"seating\":5 , \"airbags\":false}",
+    "year_of_manufacture": 2013,
+    "ready_to_drive": true
+  }
+]

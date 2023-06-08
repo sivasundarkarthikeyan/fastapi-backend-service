@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  python-app:
+    build: 
+      context: ./backend-service
+    command: pipenv run python -m uvicorn src.service:app --host 0.0.0.0
+    restart: always
+    ports:
+      - 8000:8000
+    depends_on: 
+      - database
+    env_file:
+      - postgres.env
+
+  database:
+    build: 
+      context: ./postgres
+    volumes:
+      - ./postgres/postgres_data:/var/lib/postgresql/data/
+      - ./postgres/vehicle_table.sql:/docker-entrypoint-initdb.d/vehicle_table.sql
+    ports:
+      - 5432:5432
+    restart: always
+    env_file:
+      - postgres.env
+
+volumes:
+  postgres_data:
