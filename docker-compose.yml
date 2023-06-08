@@ -5,7 +5,7 @@ services:
     build: 
       context: ./backend-service
     command: pipenv run python -m uvicorn src.service:app --host 0.0.0.0
-    #restart: always
+    restart: always
     ports:
       - 8000:8000
     depends_on: 
